@@ -32,7 +32,8 @@ export class RaptorTimeRangeQuery<T> {
     const endSeconds = (endRange.valueOf() - midnight.valueOf()) / 1000;
     console.log("Searching from ", startSeconds);
     console.log("until ", endSeconds);
-    const times = preFilteredTimes.filter( s => (s >= startSeconds && s < endSeconds));
+    
+    const times = preFilteredTimes.filter(s => (s >= startSeconds && s < endSeconds));
 
     return times.reduce((results, time) => {
       const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);

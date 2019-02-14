@@ -49,11 +49,11 @@ export class RaptorAlgorithm {
           const interchange = this.interchange[stopPi];
           const previousPiArrival = kArrivals[k - 1][stopPi];
 
-          if (stops && stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
+          if (stops && stops[pi].dropOff && stops[boardingPoint].pickUp && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
             kConnections[stopPi][k] = [trip, boardingPoint, pi];
           }
-          else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
+          else if (previousPiArrival && (!stops || ((previousPiArrival < stops[pi].arrivalTime + interchange) && stops[pi].pickUp))) {
             trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
             stops = trip && trip.stopTimes;
             boardingPoint = pi;
