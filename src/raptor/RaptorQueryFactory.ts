@@ -5,6 +5,7 @@ import {RaptorDepartAfterQuery} from "./RaptorDepartAfterQuery";
 import {QueueFactory} from "./QueueFactory";
 import {RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
 import {getDateNumber, Interchange, RaptorAlgorithm, TransfersByOrigin} from "./RaptorAlgorithm";
+import { RaptorTimeRangeQuery } from "./RaptorTimeRangeQuery";
 
 /**
  * Create the Raptor algorithm from the GTFS data.
@@ -36,6 +37,34 @@ export class RaptorQueryFactory {
     } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
 
     return new RaptorRangeQuery(
+      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
+      stops,
+      routeScannerFactory,
+      departureTimesAtStop,
+      resultsFactory
+    );
+  }
+
+  public static createTimeRangeQuery<T>(
+    trips: Trip[],
+    transfers: TransfersByOrigin,
+    interchange: Interchange,
+    calendars: CalendarIndex,
+    resultsFactory: ResultsFactory<T>,
+    date?: Date
+  ): RaptorTimeRangeQuery<T> {
+
+    const {
+      routeStopIndex,
+      routePath,
+      departureTimesAtStop,
+      usefulTransfers,
+      stops,
+      queueFactory,
+      routeScannerFactory
+    } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
+
+    return new RaptorTimeRangeQuery(
       new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
       stops,
       routeScannerFactory,

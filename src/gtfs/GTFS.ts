@@ -6,7 +6,7 @@ export type Stop = string;
 /**
  * Time in seconds since midnight (note this may be greater than 24 hours).
  */
-export type Time = number;
+export type Time = any;
 
 /**
  * Duration in seconds

@@ -24,7 +24,8 @@ export class TransferPatternRepository {
 
     if (journeys.length > 0) {
       try {
-        await this.db.query("INSERT IGNORE INTO transfer_patterns VALUES ?", [journeys]);
+        console.log(JSON.stringify(journeys));
+        // await this.db.query("INSERT IGNORE INTO transfer_patterns VALUES ?", [journeys]);
       }
       catch (err) {
         console.error(err);
