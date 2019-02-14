@@ -60,7 +60,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
       const stopTime = {
         stop: row.stop_id,
         departureTime: getTime(row.departure_time),
-        arrivalTime: getTime(row.departure_time),
+        arrivalTime: getTime(row.arrival_time),
         pickUp: row.pickup_type === "0",
         dropOff: row.drop_off_type === "0"
       };
