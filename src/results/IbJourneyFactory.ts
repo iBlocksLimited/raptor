@@ -1,11 +1,26 @@
-import {AnyLeg, Journey, Stop, StopTime, Trip} from "../gtfs/GTFS";
+import {AnyLeg, Journey, Stop, StopTime, Trip, TrainUID, Time, Transfer} from "../gtfs/GTFS";
 import {isTransfer, ResultsFactory} from "./ResultsFactory";
 import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
+
+
+interface IbJourney {
+    legs: IbResult[]
+}
+
+type TimeTableCacheLeg = {
+    origin: Stop,
+    destination: Stop,
+    departureTime: Time,
+    arrivalTime: Time,
+    trainUid?: TrainUID,
+}
+
+type IbResult = TimeTableCacheLeg | Transfer;
 
 /**
  * Extracts journeys from the kConnections index.
  */
-export class IbJourneyFactory implements ResultsFactory<Journey> {
+export class IbJourneyFactory implements ResultsFactory<IbJourney> {
   constructor() {}
 
   /**
@@ -15,8 +30,8 @@ export class IbJourneyFactory implements ResultsFactory<Journey> {
     kConnections: ConnectionIndex,
     destination: Stop,
     startDate: Date
-  ): Journey[] {
-    const results: Journey[] = [];
+  ): IbJourney[] {
+    const results: IbJourney[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
       results.push({
@@ -35,8 +50,8 @@ export class IbJourneyFactory implements ResultsFactory<Journey> {
     k: string,
     finalDestination: Stop,
     startDate: Date
-  ): AnyLeg[] {
-    const legs: AnyLeg[] = [];
+  ): IbResult[] {
+    const legs: IbResult[] = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
@@ -58,7 +73,10 @@ export class IbJourneyFactory implements ResultsFactory<Journey> {
 
         const origin = stopTimes[0].stop;
 
-        legs.push({stopTimes, origin, destination, trip: tripCopy});
+        let departureTime = stopTimes[0].departureTime;
+        let arrivalTime = stopTimes[stopTimes.length - 1].arrivalTime;
+
+        legs.push({departureTime, arrivalTime, origin, destination, trainUid: trip.trainUid});
 
         destination = origin;
       }
@@ -78,7 +96,7 @@ export class IbJourneyFactory implements ResultsFactory<Journey> {
       arrivalTime: arrivalDate,
       departureTime: departureDate,
       dropOff: stop.dropOff,
-      pickUp: stop.dropOff,
+      pickUp: stop.pickUp,
       stop: stop.stop
     };
   }

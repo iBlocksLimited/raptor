@@ -37,7 +37,8 @@ export interface Leg {
  */
 export interface TimetableLeg extends Leg {
   stopTimes: StopTime[];
-  trip: Trip;
+  trip?: Trip;
+  trainUid?: TrainUID;
 }
 
 /**
@@ -72,12 +73,18 @@ export type TripID = string;
 export type ServiceID = string;
 
 /**
+ * Add a representation from the train UID
+ */
+export type TrainUID = string;
+
+/**
  * GTFS trip
  */
 export interface Trip {
   tripId: TripID;
   stopTimes: StopTime[];
   serviceId: ServiceID;
+  trainUid?: TrainUID;
 }
 
 /**

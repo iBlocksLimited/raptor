@@ -54,7 +54,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
       setNested(true, index, row.service_id, row.date);
     },
     trip: row => {
-      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [] });
+      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [], trainUid: row.trip_headsign });
     },
     stop_time: row => {
       const stopTime = {
