@@ -13,6 +13,7 @@ type TimeTableCacheLeg = {
     departureTime: Time,
     arrivalTime: Time,
     trainUid?: TrainUID,
+    stopTimes?: StopTime[];
 }
 
 type IbResult = TimeTableCacheLeg | Transfer;
