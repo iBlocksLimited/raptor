@@ -66,7 +66,7 @@ export class RaptorAlgorithm {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
           
-          const arrival = kArrivals[k - 1][stopP] + transfer.duration;
+          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
