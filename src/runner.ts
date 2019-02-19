@@ -13,6 +13,7 @@ let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 let app = express();
 
 const port = 3000;
+app.get("/hc", (req, res) => res.send("ok"));
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
   const resultsFactory = new IbJourneyFactory();
   console.log(new Date());
