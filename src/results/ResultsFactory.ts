@@ -6,7 +6,7 @@ import {Connection, ConnectionIndex} from "../raptor/RaptorAlgorithm";
  */
 export interface ResultsFactory<T> {
 
-  getResults(kConnections: ConnectionIndex, destination: Stop, date?: Date): T[];
+  getResults(kConnections: ConnectionIndex, destination: Stop, date?: Date, currentTime?: Date): T[];
 
 }
 

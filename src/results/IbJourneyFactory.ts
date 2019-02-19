@@ -1,19 +1,29 @@
-import {AnyLeg, Journey, Stop, StopTime, Trip, TrainUID, Time, Transfer} from "../gtfs/GTFS";
+import {
+  AnyLeg,
+  Journey,
+  Stop,
+  StopTime,
+  Trip,
+  TrainUID,
+  Time,
+  Transfer,
+  Leg
+} from "../gtfs/GTFS";
 import {isTransfer, ResultsFactory} from "./ResultsFactory";
 import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
 
-
 interface IbJourney {
-    legs: IbResult[]
+  legs: IbResult[];
 }
 
-type TimeTableCacheLeg = {
-    origin: Stop,
-    destination: Stop,
-    departureTime: Time,
-    arrivalTime: Time,
-    trainUid?: TrainUID,
-    stopTimes?: StopTime[];
+interface TimeTableCacheLeg extends Leg {
+  origin: Stop;
+  destination: Stop;
+  departureTime: Time;
+  arrivalTime: Time;
+  originTrainUid?: TrainUID;
+  destinationTrainUid?: TrainUID;
+  stopTimes?: StopTime[];
 }
 
 type IbResult = TimeTableCacheLeg | Transfer;
@@ -30,17 +40,27 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
   public getResults(
     kConnections: ConnectionIndex,
     destination: Stop,
-    startDate: Date
+    startDate: Date,
+    currentTime: Date
   ): IbJourney[] {
     const results: IbJourney[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
       results.push({
-        legs: this.getJourneyLegs(kConnections, k, destination, startDate)
+        legs: this.getJourneyLegs(
+          kConnections,
+          k,
+          destination,
+          startDate,
+          currentTime
+        )
       });
     }
-
-    return results;
+    return results.filter(
+      r =>
+        (r.legs[0] as TimeTableCacheLeg).departureTime.valueOf() <=
+        startDate.valueOf() + currentTime.valueOf() * 1000
+    );
   }
 
   /**
@@ -50,7 +70,8 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     kConnections: ConnectionIndex,
     k: string,
     finalDestination: Stop,
-    startDate: Date
+    startDate: Date,
+    currentTime: Date
   ): IbResult[] {
     const legs: IbResult[] = [];
 
@@ -77,13 +98,69 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
         let departureTime = stopTimes[0].departureTime;
         let arrivalTime = stopTimes[stopTimes.length - 1].arrivalTime;
 
-        legs.push({departureTime, arrivalTime, origin, destination, trainUid: trip.trainUid});
+        let [originTrainUid, destinationTrainUid] = this.formatTrainUid(
+          trip.trainUid
+        );
+        legs.push({
+          departureTime,
+          arrivalTime,
+          origin,
+          destination,
+          originTrainUid,
+          destinationTrainUid
+        });
 
         destination = origin;
       }
     }
 
-    return legs.reverse();
+    let journeyLegs = legs.reverse();
+
+    // If the leg starts with a transfer, set the time to be the search time?
+    if ("duration" in journeyLegs[0]) {
+      let original = journeyLegs[0];
+      let departureTime = new Date(
+        startDate.valueOf() + currentTime.valueOf() * 1000
+      );
+      let arrivalTime = new Date(
+        departureTime.valueOf() + (<any>original).duration * 1000
+      );
+      journeyLegs[0] = {
+        origin: original.origin,
+        destination: original.destination,
+        originTrainUid: "",
+        destinationTrainUid: "",
+        departureTime: departureTime,
+        arrivalTime: arrivalTime
+      };
+    }
+
+    for (let i = 1; i < journeyLegs.length; i++) {
+      if ("duration" in journeyLegs[i]) {
+        let original = journeyLegs[i];
+        let departureTime = (<any>journeyLegs[i - 1]).arrivalTime;
+        let arrivalTime = new Date(
+          departureTime.valueOf() + (<any>original).duration * 1000
+        );
+        journeyLegs[i] = {
+          origin: original.origin,
+          destination: original.destination,
+          originTrainUid: "",
+          destinationTrainUid: "",
+          departureTime: departureTime,
+          arrivalTime: arrivalTime
+        };
+      }
+    }
+
+    return journeyLegs;
+  }
+
+  formatTrainUid(trainUid) {
+    let trainUids = trainUid.split("_");
+    let first = trainUids.shift();
+    let last = trainUids.pop() || first;
+    return [first, last];
   }
 
   public transformStop(stop: StopTime, startDate: Date) {
