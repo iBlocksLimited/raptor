@@ -12,8 +12,13 @@ let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 // }
 let app = express();
 
+let hcApp = express();
+
 const port = 3000;
-app.get("/hc", (req, res) => res.send("ok"));
+const hcPort = 3001;
+hcApp.get("", (req, res) => res.send("ok"));
+
+
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
   const resultsFactory = new IbJourneyFactory();
   console.log(new Date());
@@ -25,7 +30,7 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     resultsFactory
   );
   console.log(new Date());
-  app.get("/", (req, res) => {
+  app.get("/", (req, res, next) => {
     console.log(req.query);
     const orig = req.query.orig;
     const dest = req.query.dest;
@@ -38,6 +43,7 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const journeys = query.plan(orig, dest, searchDate, startDate, endDate);
     res.send(journeys);
   });
+  hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
   app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 });
 
