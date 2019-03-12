@@ -138,7 +138,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     for (let i = 1; i < journeyLegs.length; i++) {
       if ("duration" in journeyLegs[i]) {
         let original = journeyLegs[i];
-        let departureTime = (<any>journeyLegs[i - 1]).arrivalTime;
+        let departureTime = new Date((<any>journeyLegs[i - 1]).arrivalTime.valueOf() + ((<any>original).interchange * 1000));
         let arrivalTime = new Date(
           departureTime.valueOf() + (<any>original).duration * 1000
         );
