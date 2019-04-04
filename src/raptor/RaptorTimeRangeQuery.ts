@@ -23,7 +23,6 @@ export class RaptorTimeRangeQuery<T> {
   public plan(origin: Stop, destination: Stop, dateObj: Date, startRange: Date, endRange: Date): T[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const routeScanner = this.routeScannerFactory.create();
     const preFilteredTimes = this.departureTimesAtStop[origin];
     
@@ -34,9 +33,11 @@ export class RaptorTimeRangeQuery<T> {
     console.log("until ", endSeconds);
     
     const times = preFilteredTimes.filter(s => (s >= startSeconds && s < endSeconds));
-
+    const kArrivals = [this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER - 1]), {}), this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {})];
+    
     return times.reduce((results, time) => {
-      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
+      const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER - 1]), {});
+      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time, destination, kArrivals);
       const journeys = this.resultsFactory.getResults(kConnections, destination, dateObj, time);
         
       return results.concat(journeys);

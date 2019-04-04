@@ -34,7 +34,7 @@ export class RouteScanner {
       if (trip.stopTimes[stopIndex].departureTime < time) {
         break;
       }
-      else if (this.serviceIsRunning(trip.serviceId, date, dow)) {
+      else if (this.serviceIsRunning(trip.serviceId, date, dow) && trip.stopTimes[stopIndex].pickUp) {
         lastFound = i;
       }
     }
