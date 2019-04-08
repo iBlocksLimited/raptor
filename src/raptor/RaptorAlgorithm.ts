@@ -103,9 +103,15 @@ export class RaptorAlgorithm {
 }
 
 export function getDateNumber(date: Date): number {
-  const str = date.toISOString();
 
-  return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  };
+  const str = new Intl.DateTimeFormat('en-GB', options).format(date);
+ 
+  return parseInt(str.slice(6, 10) + str.slice(0, 2) + str.slice(3, 5), 10);
 }
 
 export type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
