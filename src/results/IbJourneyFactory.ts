@@ -46,6 +46,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     const results: IbJourney[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
+      if (parseInt(k, 10) < 5) {
       results.push({
         legs: this.getJourneyLegs(
           kConnections,
@@ -54,7 +55,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
           startDate,
           currentTime
         )
-      });
+      });}
     }
     return results.filter(
       r =>
