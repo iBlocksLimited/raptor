@@ -19,10 +19,22 @@ export class RaptorDepartAfterQuery<T> {
   public plan(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): T[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
+    const midnight = this.getMidnight(departureTime);
+    const startSeconds = (departureTime.valueOf() - midnight.valueOf()) / 1000;
+
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const routeScanner = this.routeScannerFactory.create();
-    const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, departureTime);
+    const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, startSeconds);
 
     return this.resultsFactory.getResults(kConnections, destination);
+  }
+
+  public getMidnight(date: Date): Date {
+    let midnight = new Date(date);
+    midnight.setHours(0);
+    midnight.setMinutes(0);
+    midnight.setSeconds(0);
+    midnight.setMilliseconds(0);
+    return midnight;
   }
 }

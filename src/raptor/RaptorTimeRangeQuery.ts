@@ -37,7 +37,7 @@ export class RaptorTimeRangeQuery<T> {
     return times.reduce((results, time) => {
       const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER - 1]), {});
       const routeScanner = this.routeScannerFactory.create();
-      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time, destination, kArrivals);
+      const kConnections = this.raptor.scanRange(routeScanner, bestArrivals, origin, date, dayOfWeek, time, destination, kArrivals);
       const journeys = this.resultsFactory.getResults(kConnections, destination, dateObj, time);
         
       return results.concat(journeys);
