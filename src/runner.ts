@@ -82,7 +82,7 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const startDate = new Date(req.query.startDate);
     const searchDate = getMidnight(startDate.toISOString());
     console.log("Single lookup", orig, dest, searchDate, startDate);
-    const midnight = this.getMidnight(startDate);
+    const midnight = getMidnight(startDate.toISOString());
     const startSeconds = (startDate.valueOf() - midnight.valueOf()) / 1000;
 
     const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds);
