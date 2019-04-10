@@ -30,6 +30,15 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     calendars,
     resultsFactory
   );
+
+  const singleLookup = RaptorQueryFactory.createDepartAfterQuery(
+    trips,
+    transfers,
+    interchange,
+    calendars,
+    detailedResultsFactory
+  );
+
   const detailedQuery = RaptorQueryFactory.createTimeRangeQuery(
     trips,
     transfers,
@@ -64,6 +73,20 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const journeys = detailedQuery.plan(orig, dest, searchDate, startDate, endDate);
     res.send(journeys);
   });
+
+  app.get("/first-arrival", (req, res, next) => {
+    console.log(req.query);
+    const orig = req.query.orig;
+    const dest = req.query.dest;
+
+    const startDate = new Date(req.query.startDate);
+    const searchDate = getMidnight(startDate.toISOString());
+    console.log("Single lookup", orig, dest, searchDate, startDate);
+
+    const journeys = singleLookup.plan(orig, dest, searchDate, startDate);
+    res.send(journeys);
+  });
+
   hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
   app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 });
