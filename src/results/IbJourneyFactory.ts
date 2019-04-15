@@ -47,15 +47,19 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
 
     for (const k of Object.keys(kConnections[destination])) {
       if (parseInt(k, 10) < 5) {
-      results.push({
-        legs: this.getJourneyLegs(
+        let foundLegs = this.getJourneyLegs(
           kConnections,
           k,
           destination,
           startDate,
           currentTime
-        )
-      });}
+        );
+        if (foundLegs) {
+          results.push({
+            legs: foundLegs
+          });
+        }
+      }
     }
     return results.filter(
       r =>
@@ -78,7 +82,11 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
-
+      if (!connection) {
+        // We have tried to create an unconstructable journey, I am still investigating _why_ exactly this happens, but it is specific to repeated RAPTOR
+        debugger;
+        return null;
+      }
       if (isTransfer(connection)) {
         let connectionWithMinutes = Object.assign({}, connection, {
           durationMinutes: connection.duration / 60
@@ -139,7 +147,10 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     for (let i = 1; i < journeyLegs.length; i++) {
       if ("duration" in journeyLegs[i]) {
         let original = journeyLegs[i];
-        let departureTime = new Date((<any>journeyLegs[i - 1]).arrivalTime.valueOf() + ((<any>original).interchange * 1000));
+        let departureTime = new Date(
+          (<any>journeyLegs[i - 1]).arrivalTime.valueOf() +
+            (<any>original).interchange * 1000
+        );
         let arrivalTime = new Date(
           departureTime.valueOf() + (<any>original).duration * 1000
         );
