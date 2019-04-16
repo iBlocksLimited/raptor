@@ -37,7 +37,7 @@ export class RaptorAlgorithm {
 
     for (let k = 1, markedStops = [origin]; markedStops.length > 0; k++) {
       const queue = this.queueFactory.getQueue(markedStops);
-      let improvedStops: string[] = [];
+      let improvedStops: Set<string> = new Set();
       if (!kArrivals[k] || Object.keys(kArrivals[k]).length === 0 ) {
         kArrivals[k] = {};
       }
@@ -69,9 +69,9 @@ export class RaptorAlgorithm {
             ) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
             kConnections[stopPi][k] = [trip, boardingPoint, pi];
-            improvedStops.push(stopPi);
+            improvedStops.add(stopPi);
           }
-          else if (previousPiArrival && (!stops || (previousPiArrival < stops[pi].arrivalTime + interchange))) {
+          else if (previousPiArrival && (!stops || (previousPiArrival < stops[pi].arrivalTime + interchange && stops[pi].pickUp))) {
             trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
             stops = trip && trip.stopTimes;
             boardingPoint = pi;
@@ -89,12 +89,12 @@ export class RaptorAlgorithm {
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
             kConnections[stopPi][k] = Object.assign({}, transfer, {interchange: this.interchange[stopP]});
-            improvedStops.push(stopPi);
+            improvedStops.add(stopPi);
           }
         }
       }
 
-      markedStops = improvedStops;
+      markedStops = [...improvedStops];
     }
 
     return kConnections;

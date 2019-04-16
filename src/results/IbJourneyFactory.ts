@@ -77,7 +77,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     finalDestination: Stop,
     startDate: Date,
     currentTime: Date
-  ): IbResult[] {
+  ): IbResult[] | null {
     const legs: IbResult[] = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
