@@ -467,22 +467,42 @@ describe("RaptorDepartAfterQuery", () => {
         st("D", 1100, null)
       ),
       t(
-        st("C", null, 1050),
-        st("D", 1110, null)
+        st("C", null, 1042), // No interchanges applied
+        st("D", 1142, null)
       ),
       t(
-        st("C", null, 1100),
-        st("D", 1120, null)
+        st("C", null, 1047), // Origin (B) interchange applied
+        st("D", 1147, null)
+      ),
+      t(
+        st("C", null, 1049), // Destination (C) interchange applied
+        st("D", 1149, null)
+      ),
+      t(
+        st("C", null, 1052), // Origin (B) interchange applied twice
+        st("D", 1152, null)
+      ),
+      t(
+        st("C", null, 1054), // Origin (B) and destination (C) interchanges applied once each ✓
+        st("D", 1154, null)
+      ),
+      t(
+        st("C", null, 1056), // Destination (C) interchange applied twice
+        st("D", 1156, null)
+      ),
+      t(
+        st("C", null, 1200), // Other
+        st("D", 1300, null)
       )
     ];
 
     const transfers = {
       "B": [
-        tf("B", "C", 10)
+        tf("B", "C", 11)
       ]
     };
 
-    const interchange = { B: 10, C: 10 };
+    const interchange = { B: 5, C: 7 };
 
     const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, interchange, calendars, journeyFactory);
     const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
@@ -494,10 +514,10 @@ describe("RaptorDepartAfterQuery", () => {
         st("A", null, 1000),
         st("B", 1030, null),
       ],
-      tfi("B", "C", 10, 10),
+      tfi("B", "C", 11, 7),
       [
-        st("C", null, 1100),
-        st("D", 1120, null)
+        st("C", null, 1054), // Origin (B) and destination (C) interchanges applied once each ✓
+        st("D", 1154, null)
       ]
     );
 
