@@ -18,7 +18,6 @@ const port = 3000;
 const hcPort = 3001;
 hcApp.get("", (req, res) => res.send("ok"));
 
-
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
   const resultsFactory = new IbJourneyFactory();
   const detailedResultsFactory = new JourneyFactory();
@@ -80,12 +79,13 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const dest = req.query.dest;
 
     const startDate = new Date(req.query.startDate);
+    const notVia = req.query.notVia;
     const searchDate = getMidnight(startDate.toISOString());
-    console.log("Single lookup", orig, dest, searchDate, startDate);
+    console.log("Single lookup", orig, dest, searchDate, startDate, notVia);
     const midnight = getMidnight(startDate.toISOString());
     const startSeconds = (startDate.valueOf() - midnight.valueOf()) / 1000;
 
-    const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds);
+    const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds, notVia);
     res.send(journeys);
   });
 

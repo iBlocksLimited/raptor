@@ -23,7 +23,8 @@ export class RaptorAlgorithm {
     origin: Stop,
     date: number,
     dow: DayOfWeek,
-    time: Time
+    time: Time,
+    notVias: Stop[]
   ): ConnectionIndex {
 
     bestArrivals[origin] = time;
@@ -43,6 +44,9 @@ export class RaptorAlgorithm {
 
         for (let pi = this.routeStopIndex[routeId][stopP]; pi < this.routePath[routeId].length; pi++) {
           const stopPi = this.routePath[routeId][pi];
+          if (notVias.includes(stopPi)) {
+            break;
+          }
           const interchange = this.interchange[stopPi];
           const previousPiArrival = kArrivals[k - 1][stopPi];
 
@@ -61,8 +65,10 @@ export class RaptorAlgorithm {
       // examine transfers
       for (const stopP of markedStops) {
         for (const transfer of this.transfers[stopP]) {
+          if (notVias.includes(transfer.destination)) {
+              continue;
+          }
           const stopPi = transfer.destination;
-          
           const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopP];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
@@ -78,7 +84,7 @@ export class RaptorAlgorithm {
     return kConnections;
   }
 
-   /**
+  /**
    * Perform a scan of the routes for a given range
    */
   public scanRange(
@@ -102,7 +108,7 @@ export class RaptorAlgorithm {
       if (!kArrivals[k] || Object.keys(kArrivals[k]).length === 0 ) {
         kArrivals[k] = {};
       }
-      
+
       for (let stop in kArrivals[k - 1]) {
           kArrivals[k][stop] = !kArrivals[k][stop] || kArrivals[k - 1][stop] <= kArrivals[k][stop] ? kArrivals[k - 1][stop] : kArrivals[k][stop];
       }
@@ -123,9 +129,9 @@ export class RaptorAlgorithm {
           const minimumArrival = Math.min(kArrivals[k][stopPi], bestDestinationArrival);
 
           if (
-              stops 
-              && stops[pi].dropOff 
-              && stops[boardingPoint].pickUp 
+              stops
+              && stops[pi].dropOff
+              && stops[boardingPoint].pickUp
               && stops[pi].arrivalTime + interchange < minimumArrival
             ) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
@@ -144,7 +150,7 @@ export class RaptorAlgorithm {
       for (const stopP of markedStops) {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
-          
+
           const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopP];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
@@ -171,7 +177,7 @@ export function getDateNumber(date: Date): number {
     year: "numeric"
   };
   const str = new Intl.DateTimeFormat('en-GB', options).format(date);
- 
+
   return parseInt(str.slice(6, 10) + str.slice(0, 2) + str.slice(3, 5), 10);
 }
 
