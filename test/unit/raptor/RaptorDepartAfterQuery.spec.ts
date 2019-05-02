@@ -305,7 +305,7 @@ describe("RaptorDepartAfterQuery", () => {
         st("B", 1030, 1035),
         st("C", 1100, null)
       ],
-      tfi("C", "D", 10, 0)
+      tfi("C", "D", 10, 0, 0)
       , [
         st("D", null, 1200),
         st("E", 1300, null)
@@ -343,7 +343,7 @@ describe("RaptorDepartAfterQuery", () => {
         st("B", 1030, 1030),
         st("C", 1100, null)
       ],
-      tfi("C", "D", 10, 0)
+      tfi("C", "D", 10, 0, 0)
     );
 
     chai.expect(result).to.deep.equal([
@@ -514,7 +514,7 @@ describe("RaptorDepartAfterQuery", () => {
         st("A", null, 1000),
         st("B", 1030, null),
       ],
-      tfi("B", "C", 11, 7),
+      tfi("B", "C", 11, 5, 7),
       [
         st("C", null, 1054), // Origin (B) and destination (C) interchanges applied once each ✓
         st("D", 1154, null)

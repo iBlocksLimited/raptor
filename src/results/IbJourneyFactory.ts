@@ -140,7 +140,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
         if (this.isTransfer(previousLeg)) {
           throw new Error("RAPTOR should not return 2 transfers in a row.");
         }
-        let departureTime = new Date(previousLeg.arrivalTime.valueOf() + originalLeg.interchange * 1000);
+        let departureTime = new Date(previousLeg.arrivalTime.valueOf() + originalLeg.originInterchange * 1000);
         let arrivalTime = new Date(departureTime.valueOf() + originalLeg.duration * 1000);
         journeyLegs[i] = {
           origin: originalLeg.origin,
