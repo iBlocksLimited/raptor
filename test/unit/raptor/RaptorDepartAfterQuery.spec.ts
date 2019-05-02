@@ -1,7 +1,7 @@
 import * as chai from "chai";
 import {RaptorQueryFactory} from "../../../src/raptor/RaptorQueryFactory";
 import {JourneyFactory} from "../../../src/results/JourneyFactory";
-import {allDays, calendars, j, setDefaultTrip, st, t, tf} from "../util";
+import {allDays, calendars, j, setDefaultTrip, st, t, tf, tfi} from "../util";
 
 describe("RaptorDepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();
@@ -305,7 +305,7 @@ describe("RaptorDepartAfterQuery", () => {
         st("B", 1030, 1035),
         st("C", 1100, null)
       ],
-      tf("C", "D", 10)
+      tfi("C", "D", 10, 0)
       , [
         st("D", null, 1200),
         st("E", 1300, null)
@@ -343,7 +343,7 @@ describe("RaptorDepartAfterQuery", () => {
         st("B", 1030, 1030),
         st("C", 1100, null)
       ],
-      tf("C", "D", 10)
+      tfi("C", "D", 10, 0)
     );
 
     chai.expect(result).to.deep.equal([
@@ -494,7 +494,7 @@ describe("RaptorDepartAfterQuery", () => {
         st("A", null, 1000),
         st("B", 1030, null),
       ],
-      tf("B", "C", 10),
+      tfi("B", "C", 10, 10),
       [
         st("C", null, 1100),
         st("D", 1120, null)

@@ -41,6 +41,12 @@ export function tf(origin: Stop, destination: Stop, duration: Time): Transfer {
   return { origin, destination, duration, startTime: 0, endTime: Number.MAX_SAFE_INTEGER };
 }
 
+export function tfi(origin: Stop, destination: Stop, duration: Time, interchange: Time): Transfer {
+  let transfer = tf(origin, destination, duration);
+  Object.assign(transfer, {interchange});
+  return transfer;
+}
+
 export function setDefaultTrip(results: Journey[]) {
   for (const trip of results) {
     for (const leg of trip.legs as any[]) {

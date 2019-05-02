@@ -18,7 +18,6 @@ const port = 3000;
 const hcPort = 3001;
 hcApp.get("", (req, res) => res.send("ok"));
 
-
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
   const resultsFactory = new IbJourneyFactory();
   const detailedResultsFactory = new JourneyFactory();
