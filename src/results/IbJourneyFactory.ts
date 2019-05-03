@@ -47,15 +47,16 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
 
     for (const k of Object.keys(kConnections[destination])) {
       if (parseInt(k, 10) < 5) {
-      results.push({
-        legs: this.getJourneyLegs(
-          kConnections,
-          k,
-          destination,
-          startDate,
-          currentTime
-        )
-      });}
+        results.push({
+          legs: this.getJourneyLegs(
+            kConnections,
+            k,
+            destination,
+            startDate,
+            currentTime
+          )
+        });
+      }
     }
     return results.filter(
       r =>
@@ -77,7 +78,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     const legs: IbResult[] = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
-      const connection = kConnections[destination][i];
+      const connection: [Trip, number, number] | Transfer = kConnections[destination][i];
 
       if (isTransfer(connection)) {
         let connectionWithMinutes = Object.assign({}, connection, {
@@ -91,7 +92,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
         let stopTimeCopy = [...trip.stopTimes].map(stop =>
           this.transformStop(stop, startDate)
         );
-        let tripCopy = <Trip>Object.assign({}, trip, {stopTimes: stopTimeCopy});
+        let tripCopy = <Trip> Object.assign({}, trip, {stopTimes: stopTimeCopy});
         const stopTimes = tripCopy.stopTimes.slice(start, end + 1);
 
         const origin = stopTimes[0].stop;
@@ -99,17 +100,17 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
         let departureTime = stopTimes[0].departureTime;
         let arrivalTime = stopTimes[stopTimes.length - 1].arrivalTime;
 
-        let [originTrainUid, destinationTrainUid] = this.formatTrainUid(
-          trip.trainUid
-        );
-        legs.push({
+        let leg = {
           departureTime,
           arrivalTime,
           origin,
-          destination,
-          originTrainUid,
-          destinationTrainUid
-        });
+          destination
+        };
+        if (trip.trainUid) {
+          let [originTrainUid, destinationTrainUid] = this.formatTrainUid(trip.trainUid);
+          Object.assign(leg, {originTrainUid, destinationTrainUid});
+        }
+        legs.push(leg);
 
         destination = origin;
       }
@@ -118,17 +119,13 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     let journeyLegs = legs.reverse();
 
     // If the leg starts with a transfer, set the time to be the search time?
-    if ("duration" in journeyLegs[0]) {
-      let original = journeyLegs[0];
-      let departureTime = new Date(
-        startDate.valueOf() + currentTime.valueOf() * 1000
-      );
-      let arrivalTime = new Date(
-        departureTime.valueOf() + (<any>original).duration * 1000
-      );
+    let originalStartLeg = journeyLegs[0];
+    if (this.isTransfer(originalStartLeg)) {
+      let departureTime = new Date(startDate.valueOf() + currentTime.valueOf() * 1000);
+      let arrivalTime = new Date(departureTime.valueOf() + originalStartLeg.duration * 1000);
       journeyLegs[0] = {
-        origin: original.origin,
-        destination: original.destination,
+        origin: originalStartLeg.origin,
+        destination: originalStartLeg.destination,
         originTrainUid: "",
         destinationTrainUid: "",
         departureTime: departureTime,
@@ -137,15 +134,17 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     }
 
     for (let i = 1; i < journeyLegs.length; i++) {
-      if ("duration" in journeyLegs[i]) {
-        let original = journeyLegs[i];
-        let departureTime = new Date((<any>journeyLegs[i - 1]).arrivalTime.valueOf() + ((<any>original).interchange * 1000));
-        let arrivalTime = new Date(
-          departureTime.valueOf() + (<any>original).duration * 1000
-        );
+      let originalLeg = journeyLegs[i];
+      if (this.isTransfer(originalLeg)) {
+        let previousLeg = journeyLegs[i - 1];
+        if (this.isTransfer(previousLeg)) {
+          throw new Error("RAPTOR should not return 2 transfers in a row.");
+        }
+        let departureTime = new Date(previousLeg.arrivalTime.valueOf() + originalLeg.originInterchange * 1000);
+        let arrivalTime = new Date(departureTime.valueOf() + originalLeg.duration * 1000);
         journeyLegs[i] = {
-          origin: original.origin,
-          destination: original.destination,
+          origin: originalLeg.origin,
+          destination: originalLeg.destination,
           originTrainUid: "",
           destinationTrainUid: "",
           departureTime: departureTime,
@@ -157,21 +156,23 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     return journeyLegs;
   }
 
-  formatTrainUid(trainUid) {
-    let trainUids = trainUid.split("_");
-    let first = trainUids.shift();
-    let last = trainUids.pop() || first;
+  private isTransfer(leg: TimeTableCacheLeg | Transfer): leg is Transfer {
+    return "duration" in leg;
+  }
+
+  formatTrainUid(trainUid: TrainUID): [TrainUID, TrainUID] {
+    let trainUids: TrainUID[] = trainUid.split("_");
+    let first = trainUids[0];
+    let last = trainUids[trainUids.length - 1];
     return [first, last];
   }
 
-  public transformStop(stop: StopTime, startDate: Date) {
+  public transformStop(stop: StopTime, startDate: Date): StopTime {
     let startMillis = startDate.valueOf();
-    let arrivalDate = new Date(<number>stop.arrivalTime * 1000 + startMillis);
-    let departureDate = new Date(
-      <number>stop.departureTime * 1000 + startMillis
-    );
+    let arrivalDate = new Date(stop.arrivalTime * 1000 + startMillis);
+    let departureDate = new Date(stop.departureTime * 1000 + startMillis);
 
-    return <StopTime>{
+    return {
       arrivalTime: arrivalDate,
       departureTime: departureDate,
       dropOff: stop.dropOff,

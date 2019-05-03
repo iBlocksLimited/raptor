@@ -50,11 +50,13 @@ export class RaptorAlgorithm {
           const interchange = this.interchange[stopPi];
           const previousPiArrival = kArrivals[k - 1][stopPi];
 
-          if (stops && stops[pi].dropOff && stops[boardingPoint].pickUp && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
+          if (stops && stops[pi].dropOff && stops[boardingPoint].pickUp
+              && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
             kConnections[stopPi][k] = [trip, boardingPoint, pi];
           }
-          else if (previousPiArrival && (!stops || ((previousPiArrival < stops[pi].arrivalTime + interchange) && stops[pi].pickUp))) {
+          else if (previousPiArrival && (!stops || ((previousPiArrival < stops[pi].arrivalTime + interchange)
+              && stops[pi].pickUp))) {
             trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
             stops = trip && trip.stopTimes;
             boardingPoint = pi;
@@ -69,11 +71,16 @@ export class RaptorAlgorithm {
               continue;
           }
           const stopPi = transfer.destination;
+          
           const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopP];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
-            kConnections[stopPi][k] = Object.assign({}, transfer, {interchange: this.interchange[stopP]});
+            let interchanges = {
+              originInterchange: this.interchange[stopP],
+              destinationInterchange: this.interchange[stopPi]
+            };
+            kConnections[stopPi][k] = Object.assign({}, transfer, interchanges);
           }
         }
       }
@@ -84,9 +91,9 @@ export class RaptorAlgorithm {
     return kConnections;
   }
 
-  /**
-   * Perform a scan of the routes for a given range
-   */
+   /**
+    * Perform a scan of the routes for a given range
+    */
   public scanRange(
     routeScanner: RouteScanner,
     bestArrivals: Arrivals,
@@ -95,7 +102,7 @@ export class RaptorAlgorithm {
     dow: DayOfWeek,
     time: Time,
     destination?: Stop,
-    kArrivals = [Object.assign({}, bestArrivals)]
+    kArrivals: Arrivals[] = [Object.assign({}, bestArrivals)]
   ): ConnectionIndex {
 
     bestArrivals[origin] = time;
@@ -110,7 +117,9 @@ export class RaptorAlgorithm {
       }
 
       for (let stop in kArrivals[k - 1]) {
-          kArrivals[k][stop] = !kArrivals[k][stop] || kArrivals[k - 1][stop] <= kArrivals[k][stop] ? kArrivals[k - 1][stop] : kArrivals[k][stop];
+        kArrivals[k][stop] = !kArrivals[k][stop] || kArrivals[k - 1][stop] <= kArrivals[k][stop]
+                                ? kArrivals[k - 1][stop]
+                                : kArrivals[k][stop];
       }
 
       // examine routes
@@ -150,12 +159,16 @@ export class RaptorAlgorithm {
       for (const stopP of markedStops) {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
-
-          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopP];
+          
+          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
-            kConnections[stopPi][k] = Object.assign({}, transfer, {interchange: this.interchange[stopP]});
+            let interchanges = {
+              originInterchange: this.interchange[stopP],
+              destinationInterchange: this.interchange[stopPi]
+            };
+            kConnections[stopPi][k] = Object.assign({}, transfer, interchanges);
             improvedStops.push(stopPi);
           }
         }
@@ -176,8 +189,8 @@ export function getDateNumber(date: Date): number {
     month: "2-digit",
     year: "numeric"
   };
-  const str = new Intl.DateTimeFormat('en-GB', options).format(date);
-
+  const str = new Intl.DateTimeFormat("en-GB", options).format(date);
+ 
   return parseInt(str.slice(6, 10) + str.slice(0, 2) + str.slice(3, 5), 10);
 }
 

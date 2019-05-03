@@ -48,6 +48,8 @@ export interface Transfer extends Leg {
   duration: Duration;
   startTime: Time;
   endTime: Time;
+  originInterchange?: Time;
+  destinationInterchange?: Time;
 }
 
 /**
