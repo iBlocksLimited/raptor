@@ -91,7 +91,9 @@ export class SmJourneyFactory implements ResultsFactory<SmJourney> {
                 );
                 let firstLeg = legs[0];
                 let firstLegDeparture: Date;
-                if (currentIterDateMillis === undefined || this.getJourneyStartMillis(legs) <= currentIterDateMillis) {
+                if (currentIterDateMillis === undefined
+                    || this.isTransferLeg(firstLeg)
+                    || firstLeg.departureTime.valueOf() <= currentIterDateMillis) {
                     results.push({
                         legs: legs,
                         origin: firstLeg.origin,
@@ -154,19 +156,6 @@ export class SmJourneyFactory implements ResultsFactory<SmJourney> {
             }
         }
         return legs.reverse();
-    }
-
-    private getJourneyStartMillis(legs: SmLeg[]): number {
-        let firstLeg = legs[0];
-        if (this.isTransferLeg(firstLeg)) {
-            let secondLeg = legs[1];
-            if (this.isTransferLeg(secondLeg)) {
-                throw new Error("RAPTOR should not return 2 transfers in a row.");
-            }
-            let totalTransferTime = 1000 * (firstLeg.destinationInterchange + firstLeg.durationSeconds);
-            return secondLeg.departureTime.valueOf() - totalTransferTime;
-        }
-        return firstLeg.departureTime.valueOf();
     }
 
     private isTransferLeg(leg: SmLeg): leg is SmTransferLeg {
