@@ -29,7 +29,7 @@ export class RaptorRangeQuery<T> {
     
     return times.reduce((results, time) => {
       const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
-      const journeys = this.resultsFactory.getResults(kConnections, destination);
+      const journeys = this.resultsFactory.getResults(kConnections, destination, dateObj, time);
 
       return results.concat(journeys);
     }, [] as T[]).reverse();
