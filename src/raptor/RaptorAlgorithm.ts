@@ -65,11 +65,15 @@ export class RaptorAlgorithm {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
           
-          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopP];
+          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
-            kConnections[stopPi][k] = Object.assign({}, transfer, {interchange: this.interchange[stopP]});
+            let interchanges = {
+              originInterchange: this.interchange[stopP],
+              destinationInterchange: this.interchange[stopPi]
+            };
+            kConnections[stopPi][k] = Object.assign({}, transfer, interchanges);
           }
         }
       }
@@ -149,11 +153,15 @@ export class RaptorAlgorithm {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
           
-          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopP];
+          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
           if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
-            kConnections[stopPi][k] = Object.assign({}, transfer, {interchange: this.interchange[stopP]});
+            let interchanges = {
+              originInterchange: this.interchange[stopP],
+              destinationInterchange: this.interchange[stopPi]
+            };
+            kConnections[stopPi][k] = Object.assign({}, transfer, interchanges);
             improvedStops.push(stopPi);
           }
         }
