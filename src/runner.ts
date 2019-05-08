@@ -54,9 +54,12 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const startDate = new Date(req.query.startDate);
     const endDate = new Date(req.query.endDate);
     const searchDate = getMidnight(startDate.toISOString());
-    console.log(orig, dest, searchDate, startDate, endDate);
 
-    const journeys = query.plan(orig, dest, searchDate, startDate, endDate);
+    const notVias = req.query.notVia ? req.query.notVia : [];
+
+    console.log(orig, dest, searchDate, startDate, endDate, notVias);
+
+    const journeys = query.plan(orig, dest, searchDate, startDate, endDate, notVias);
     res.send(journeys);
   });
   app.get("/detail", (req, res, next) => {
@@ -67,9 +70,12 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const startDate = new Date(req.query.startDate);
     const endDate = new Date(req.query.endDate);
     const searchDate = getMidnight(startDate.toISOString());
-    console.log(orig, dest, searchDate, startDate, endDate);
 
-    const journeys = detailedQuery.plan(orig, dest, searchDate, startDate, endDate);
+    const notVias = req.query.notVia ? req.query.notVia : [];
+
+    console.log(orig, dest, searchDate, startDate, endDate, notVias);
+
+    const journeys = detailedQuery.plan(orig, dest, searchDate, startDate, endDate, notVias);
     res.send(journeys);
   });
 
@@ -79,13 +85,14 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const dest = req.query.dest;
 
     const startDate = new Date(req.query.startDate);
-    const notVia = req.query.notVia;
+    const notVias = req.query.notVia ? req.query.notVia : [];
+
     const searchDate = getMidnight(startDate.toISOString());
-    console.log("Single lookup", orig, dest, searchDate, startDate, notVia);
+    console.log("Single lookup", orig, dest, searchDate, startDate, notVias);
     const midnight = getMidnight(startDate.toISOString());
     const startSeconds = (startDate.valueOf() - midnight.valueOf()) / 1000;
 
-    const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds, notVia);
+    const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds, notVias);
     res.send(journeys);
   });
 

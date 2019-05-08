@@ -91,8 +91,7 @@ describe("RaptorDepartAfterQuery", () => {
               st("D", 1135, null)),
           t(st("A", null, 1000),
               st("E", 1018, 1025),
-              st("C", 1050, null)
-          ),
+              st("C", 1050, null)),
           t(st("B", 1021, 1025),
               st("C", 1028, 1030),
               st("D", 1035, null))
@@ -166,7 +165,6 @@ describe("RaptorDepartAfterQuery", () => {
 
     const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900, []);
-
 
     setDefaultTrip(result);
 
@@ -599,7 +597,7 @@ describe("RaptorDepartAfterQuery", () => {
     const interchange = { B: 5, C: 7 };
 
     const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, interchange, calendars, journeyFactory);
-    const result = raptor.plan("A", "D", new Date("2018-10-16"), 900, []);
+    const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
 
