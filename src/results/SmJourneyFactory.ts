@@ -80,9 +80,8 @@ export class SmJourneyFactory implements ResultsFactory<SmJourney> {
         }
 
         for (const k of Object.keys(kConnections[destination])) {
-            let foo = kConnections[k];
             if (parseInt(k, 10) < 5) {
-                const legs = this.getJourneyLegs(
+                const legs: SmLeg[] = this.getJourneyLegs(
                     kConnections,
                     k,
                     destination,
@@ -90,14 +89,13 @@ export class SmJourneyFactory implements ResultsFactory<SmJourney> {
                     currentSearchTime
                 );
                 let firstLeg = legs[0];
-                let firstLegDeparture: Date;
                 if (currentIterDateMillis === undefined
                     || this.isTransferLeg(firstLeg)
                     || firstLeg.departureTime.valueOf() <= currentIterDateMillis) {
                     results.push({
-                        legs: legs,
                         origin: firstLeg.origin,
                         destination: destination,
+                        legs: legs,
                     });
                 }
             }
@@ -110,7 +108,7 @@ export class SmJourneyFactory implements ResultsFactory<SmJourney> {
         k: string,
         finalDestination: Stop,
         startDate: Date,
-        currentSearchTime: Time
+        currentSearchTime?: Time
     ): SmLeg[] {
         const legs: SmLeg[] = [];
 
