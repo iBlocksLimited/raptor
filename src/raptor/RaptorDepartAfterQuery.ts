@@ -24,7 +24,7 @@ export class RaptorDepartAfterQuery<T> {
     const routeScanner = this.routeScannerFactory.create();
     const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, departureSeconds);
 
-    return this.resultsFactory.getResults(kConnections, destination);
+    return this.resultsFactory.getResults(kConnections, destination, dateObj);
   }
 
   public getMidnight(date: Date): Date {
