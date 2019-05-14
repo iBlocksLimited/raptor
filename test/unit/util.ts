@@ -6,7 +6,8 @@ export function t(...stopTimes: StopTime[]): Trip {
   return {
     tripId: "trip" + tripId++,
     stopTimes: stopTimes,
-    serviceId: "1"
+    serviceId: "1",
+    agencyId: "XX"
   };
 }
 
@@ -20,7 +21,7 @@ export function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | n
   };
 }
 
-const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
+const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [], agencyId: "XX" };
 
 export function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
   return {
