@@ -86,6 +86,7 @@ export interface Trip {
   tripId: TripID;
   stopTimes: StopTime[];
   serviceId: ServiceID;
+  agencyId: String;
   trainUid?: TrainUID;
 }
 
