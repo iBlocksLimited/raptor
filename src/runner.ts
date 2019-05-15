@@ -2,6 +2,7 @@ import * as raptor from "./index";
 import * as allRuns from "./transfer-patterns";
 import {JourneyFactory, RaptorQueryFactory} from "./index";
 import { IbJourneyFactory } from "./results/IbJourneyFactory";
+import { SmJourneyFactory } from "./results/SmJourneyFactory";
 const express = require("express");
 let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 
@@ -16,11 +17,12 @@ let hcApp = express();
 
 const port = 3000;
 const hcPort = 3001;
+app.get("/healthcheck", (req, res) => res.send("ok"));
 hcApp.get("", (req, res) => res.send("ok"));
 
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
   const resultsFactory = new IbJourneyFactory();
-  const detailedResultsFactory = new JourneyFactory();
+  const detailedResultsFactory = new SmJourneyFactory();
   console.log(new Date());
   const query = RaptorQueryFactory.createTimeRangeQuery(
     trips,
@@ -96,8 +98,8 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     res.send(journeys);
   });
 
+  app.listen(port, () => console.log(`Raptor listening on port ${port}!`));
   hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
-  app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 });
 
 function getMidnight(date: string): Date {
