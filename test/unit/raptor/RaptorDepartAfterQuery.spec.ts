@@ -29,7 +29,7 @@ describe("RaptorDepartAfterQuery", () => {
     ]);
   });
 
-  it("finds route not through via simple", () => {
+  it("finds route not going through B", () => {
     const trips = [
       t(st("A", null, 1000),
         st("B", 1025, 1028),
@@ -53,7 +53,18 @@ describe("RaptorDepartAfterQuery", () => {
     ]);
   });
 
-  it("finds route not through via", () => {
+  it("check not via allows reboarding of a route exclude due to not via", () => {
+      /*
+      * Checks that raptor can still plan a journey that goes from A - D but not via B where the
+      * only train that goes to D goes through B.
+      *
+      *      E
+      *    /  \
+      *   /    \
+      *  /      \
+      * A - B - C - D
+      *
+      */
     const trips = [
       t(st("A", null, 1000),
         st("B", 1025, 1028),
@@ -116,6 +127,39 @@ describe("RaptorDepartAfterQuery", () => {
               [
                   st("C", 1100, 1108),
                   st("D", 1135, null)
+              ])
+      ]);
+
+  });
+
+  it("finds slower route not through multiple vias", () => {
+      const trips = [
+          t(
+              st("A", null, 1100),
+              st("B", 1130, 1132),
+              st("C", 1200, null)
+          ),
+          t(
+              st("A", null, 1100),
+              st("D", 1110, 1112),
+              st("C", 1120, null)
+          ),
+          t(
+              st("A", null, 1100),
+              st("E", 1105, 1108),
+              st("C", 1115, 1120)
+          )
+      ];
+      const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
+      const result = raptor.plan("A", "C", new Date("2018-10-16"), 900, ["D", "E"]);
+
+      setDefaultTrip(result);
+
+      chai.expect(result).to.deep.equal([
+          j([
+              st("A", null, 1100),
+              st("B", 1130, 1132),
+              st("C", 1200, null)
               ])
       ]);
 

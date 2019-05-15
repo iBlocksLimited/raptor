@@ -24,7 +24,7 @@ export class RaptorAlgorithm {
     date: number,
     dow: DayOfWeek,
     time: Time,
-    notVias: Stop[]
+    notVias: Stop[] = []
   ): ConnectionIndex {
 
     bestArrivals[origin] = time;
@@ -101,7 +101,7 @@ export class RaptorAlgorithm {
     date: number,
     dow: DayOfWeek,
     time: Time,
-    notVias: Stop[],
+    notVias: Stop[] = [],
     destination?: Stop,
     kArrivals: Arrivals[] = [Object.assign({}, bestArrivals)],
   ): ConnectionIndex {

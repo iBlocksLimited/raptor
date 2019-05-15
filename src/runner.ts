@@ -1,6 +1,6 @@
 import * as raptor from "./index";
 import * as allRuns from "./transfer-patterns";
-import {JourneyFactory, RaptorQueryFactory} from "./index";
+import {JourneyFactory, RaptorQueryFactory, Stop} from "./index";
 import { IbJourneyFactory } from "./results/IbJourneyFactory";
 import { SmJourneyFactory } from "./results/SmJourneyFactory";
 const express = require("express");
@@ -57,7 +57,7 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const endDate = new Date(req.query.endDate);
     const searchDate = getMidnight(startDate.toISOString());
 
-    const notVias = req.query.notVia ? req.query.notVia : [];
+    const notVias = validateNotVias(req.query.notVia ? req.query.notVia : [], orig, dest);
 
     console.log(orig, dest, searchDate, startDate, endDate, notVias);
 
@@ -73,7 +73,7 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const endDate = new Date(req.query.endDate);
     const searchDate = getMidnight(startDate.toISOString());
 
-    const notVias = req.query.notVia ? req.query.notVia : [];
+    const notVias = validateNotVias(req.query.notVia ? req.query.notVia : [], orig, dest);
 
     console.log(orig, dest, searchDate, startDate, endDate, notVias);
 
@@ -87,7 +87,7 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const dest = req.query.dest;
 
     const startDate = new Date(req.query.startDate);
-    const notVias = req.query.notVia ? req.query.notVia : [];
+    const notVias = validateNotVias(req.query.notVia ? req.query.notVia : [], orig, dest);
 
     const searchDate = getMidnight(startDate.toISOString());
     console.log("Single lookup", orig, dest, searchDate, startDate, notVias);
@@ -101,6 +101,24 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
   app.listen(port, () => console.log(`Raptor listening on port ${port}!`));
   hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
 });
+
+/**
+ * Checks that the not vias do not include the origin and destination stops
+ *
+ * @param notVias the list of not vias
+ * @param origin
+ * @param destination
+ * @throws Error if the origin or destination are found in the not vias list
+ */
+function validateNotVias(notVias: Stop[], origin: Stop, destination: Stop) {
+    if (notVias.includes(origin)) {
+        throw new Error("Origin: " + origin + " in not via list: " + notVias);
+    } else if (notVias.includes(destination)) {
+        throw new Error("Destination: " + destination + " in not via list: " + notVias);
+    }
+
+    return notVias;
+}
 
 function getMidnight(date: string): Date {
   let midnight = new Date(date);

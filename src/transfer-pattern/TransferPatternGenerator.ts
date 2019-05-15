@@ -34,7 +34,7 @@ export class TransferPatternGenerator<T> {
     const results = this.resultFactory();
 
     for (const time of this.departureTimesAtStop[origin]) {
-      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time, []);
+      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
 
       results.add(kConnections);
     }
