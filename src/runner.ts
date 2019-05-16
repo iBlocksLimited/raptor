@@ -57,7 +57,11 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const endDate = new Date(req.query.endDate);
     const searchDate = getMidnight(startDate.toISOString());
 
-    const notVias = validateNotVias(req.query.notVia ? req.query.notVia : [], orig, dest);
+    const notVias = req.query.notVia ? req.query.notVia : [];
+    if (!validateNotVias(notVias, orig, dest)) {
+        sendInvalidNotViasMessage(res, notVias, orig, dest);
+        return;
+    }
 
     console.log(orig, dest, searchDate, startDate, endDate, notVias);
 
@@ -73,7 +77,11 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const endDate = new Date(req.query.endDate);
     const searchDate = getMidnight(startDate.toISOString());
 
-    const notVias = validateNotVias(req.query.notVia ? req.query.notVia : [], orig, dest);
+    const notVias = req.query.notVia ? req.query.notVia : [];
+    if (!validateNotVias(notVias, orig, dest)) {
+        sendInvalidNotViasMessage(res, notVias, orig, dest);
+        return;
+    }
 
     console.log(orig, dest, searchDate, startDate, endDate, notVias);
 
@@ -87,7 +95,12 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const dest = req.query.dest;
 
     const startDate = new Date(req.query.startDate);
-    const notVias = validateNotVias(req.query.notVia ? req.query.notVia : [], orig, dest);
+
+    const notVias = req.query.notVia ? req.query.notVia : [];
+    if (!validateNotVias(notVias, orig, dest)) {
+        sendInvalidNotViasMessage(res, notVias, orig, dest);
+        return;
+    }
 
     const searchDate = getMidnight(startDate.toISOString());
     console.log("Single lookup", orig, dest, searchDate, startDate, notVias);
@@ -103,21 +116,34 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
 });
 
 /**
- * Checks that the not vias do not include the origin and destination stops
+ * Checks that the not vias do not include the origin and destination stops.
  *
  * @param notVias the list of not vias
- * @param origin
- * @param destination
- * @throws Error if the origin or destination are found in the not vias list
+ * @param origin the origin CRS code
+ * @param destination the destination CRS code
+ * @return true if neither are included, false if one or both are.
  */
-function validateNotVias(notVias: Stop[], origin: Stop, destination: Stop) {
-    if (notVias.includes(origin)) {
-        throw new Error("Origin: " + origin + " in not via list: " + notVias);
-    } else if (notVias.includes(destination)) {
-        throw new Error("Destination: " + destination + " in not via list: " + notVias);
-    }
+function validateNotVias(notVias: Stop[], origin: Stop, destination: Stop): boolean {
+    return !(notVias.includes(origin) || notVias.includes(destination));
 
-    return notVias;
+}
+
+function sendInvalidNotViasMessage(res: any, notVias: Stop[], origin: Stop, destination: Stop) {
+    const preMessage = notVias.includes(origin) ? "Origin: " + origin : "Destination: " + destination;
+    const message = preMessage + " in not via list: " + notVias;
+    sendBadRequestMessage(message, res);
+}
+
+function sendBadRequestMessage(message: string, res: any) {
+    res.status(400).send(message);
+    console.log(message);
+}
+
+class InvalidNotViaError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "InvalidNotVia";
+    }
 }
 
 function getMidnight(date: string): Date {

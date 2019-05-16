@@ -1,7 +1,7 @@
 import * as chai from "chai";
 import {RaptorQueryFactory} from "../../../src/raptor/RaptorQueryFactory";
 import {JourneyFactory} from "../../../src/results/JourneyFactory";
-import {allDays, calendars, j, setDefaultTrip, st, t, tf, tfi} from "../util";
+import {allDays, calendars, j, setDefaultTrip, st, t, tf, tfi, via} from "../util";
 
 describe("RaptorDepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();
@@ -97,7 +97,7 @@ describe("RaptorDepartAfterQuery", () => {
   it("finds correct not via ignoring transfers", () => {
       const trips = [
           t(st("A", null, 1000),
-              st("B", 1025, 1028),
+              st("B", 1025, 1028, ),
               st("C", 1100, 1108),
               st("D", 1135, null)),
           t(st("A", null, 1000),
@@ -161,6 +161,35 @@ describe("RaptorDepartAfterQuery", () => {
               st("B", 1130, 1132),
               st("C", 1200, null)
               ])
+      ]);
+
+  });
+
+  it("finds route not via station that has no pick up or drop off", () => {
+     const trips = [
+         t(
+             st("A", null, 1100),
+             st("B", 1130, 1140),
+             st("C", 1150, null)
+         ),
+         t(
+             st("A", null, 1100),
+             via("D", 1115, 1115, false, false),
+             st( "C", 1130, null)
+         )
+     ];
+
+     const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
+     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900, ["D"]);
+
+     setDefaultTrip(result);
+
+     chai.expect(result).to.deep.equal([
+          j([
+              st("A", null, 1100),
+              st("B", 1130, 1140),
+              st("C", 1150, null)
+          ])
       ]);
 
   });

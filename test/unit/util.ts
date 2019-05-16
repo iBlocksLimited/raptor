@@ -20,6 +20,18 @@ export function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | n
   };
 }
 
+export function via(stop: Stop, arrivalTime: Time | null, departureTime: Time | null,
+                    dropOff?: boolean, pickUp?: boolean): StopTime {
+    return {
+        stop: stop,
+        arrivalTime: arrivalTime || departureTime!,
+        departureTime: departureTime || arrivalTime!,
+        dropOff: dropOff || (arrivalTime !== null),
+        pickUp: pickUp || (departureTime !== null)
+    };
+
+}
+
 const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
 
 export function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
