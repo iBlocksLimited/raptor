@@ -37,6 +37,7 @@ export interface TrainTrip {
     tripId: TripID;
     stopTimes: StopDateTime[];
     serviceId: ServiceID;
+    agencyId: String;
     trainUid?: TrainUID;
 }
 
