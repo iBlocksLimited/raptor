@@ -6,7 +6,8 @@ export function t(...stopTimes: StopTime[]): Trip {
   return {
     tripId: "trip" + tripId++,
     stopTimes: stopTimes,
-    serviceId: "1"
+    serviceId: "1",
+    agencyId: "XX"
   };
 }
 
@@ -20,7 +21,19 @@ export function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | n
   };
 }
 
-const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
+export function via(stop: Stop, arrivalTime: Time | null, departureTime: Time | null,
+                    dropOff?: boolean, pickUp?: boolean): StopTime {
+    return {
+        stop: stop,
+        arrivalTime: arrivalTime || departureTime!,
+        departureTime: departureTime || arrivalTime!,
+        dropOff: dropOff || (arrivalTime !== null),
+        pickUp: pickUp || (departureTime !== null)
+    };
+
+}
+
+const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [], agencyId: "XX" };
 
 export function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
   return {
@@ -39,6 +52,13 @@ export function isTransfer(connection: StopTime[] | Transfer): connection is Tra
 
 export function tf(origin: Stop, destination: Stop, duration: Time): Transfer {
   return { origin, destination, duration, startTime: 0, endTime: Number.MAX_SAFE_INTEGER };
+}
+
+export function tfi(origin: Stop, destination: Stop, duration: Time,
+                    originInterchange: Time, destinationInterchange: Time): Transfer {
+  let transfer = tf(origin, destination, duration);
+  Object.assign(transfer, {originInterchange, destinationInterchange});
+  return transfer;
 }
 
 export function setDefaultTrip(results: Journey[]) {

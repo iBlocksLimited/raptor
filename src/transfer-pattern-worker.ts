@@ -7,6 +7,7 @@ import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepos
  * Worker that finds transfer patterns for a given station
  */
 async function worker(filename: string, date: Date): Promise<void> {
+  console.log(filename, date);
   const [trips, transfers, interchange, calendars] = await loadGTFS(filename);
 
   const raptor = TransferPatternGeneratorFactory.create(

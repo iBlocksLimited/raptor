@@ -6,7 +6,7 @@ export type Stop = string;
 /**
  * Time in seconds since midnight (note this may be greater than 24 hours).
  */
-export type Time = number;
+export type Time = any;
 
 /**
  * Duration in seconds
@@ -37,7 +37,8 @@ export interface Leg {
  */
 export interface TimetableLeg extends Leg {
   stopTimes: StopTime[];
-  trip: Trip;
+  trip?: Trip;
+  trainUid?: TrainUID;
 }
 
 /**
@@ -47,6 +48,8 @@ export interface Transfer extends Leg {
   duration: Duration;
   startTime: Time;
   endTime: Time;
+  originInterchange?: Time;
+  destinationInterchange?: Time;
 }
 
 /**
@@ -72,12 +75,19 @@ export type TripID = string;
 export type ServiceID = string;
 
 /**
+ * Add a representation from the train UID
+ */
+export type TrainUID = string;
+
+/**
  * GTFS trip
  */
 export interface Trip {
   tripId: TripID;
   stopTimes: StopTime[];
   serviceId: ServiceID;
+  agencyId: String;
+  trainUid?: TrainUID;
 }
 
 /**

@@ -15,6 +15,8 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
   const excludes = {};
   const includes = {};
   const stopTimes = {};
+  const routeAgencies = {};
+  const tripRoutes = {};
 
   const processor = {
     link: row => {
@@ -54,13 +56,20 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
       setNested(true, index, row.service_id, row.date);
     },
     trip: row => {
-      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [] });
+      trips.push({
+        serviceId: row.service_id,
+        tripId: row.trip_id,
+        stopTimes: [],
+        trainUid: row.trip_headsign,
+        agencyId: "XX"
+      });
+      tripRoutes[row.trip_id] = row.route_id;
     },
     stop_time: row => {
       const stopTime = {
         stop: row.stop_id,
         departureTime: getTime(row.departure_time),
-        arrivalTime: getTime(row.departure_time),
+        arrivalTime: getTime(row.arrival_time),
         pickUp: row.pickup_type === "0",
         dropOff: row.drop_off_type === "0"
       };
@@ -84,7 +93,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
         pushNested(t, transfers, row.from_stop_id);
       }
     },
-    route: () => {},
+    route: row => routeAgencies[row.route_id] = row.agency_id,
     stop: () => {},
     agency: () => {},
   };
@@ -96,6 +105,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
       .on("end", () => {
         for (const t of trips) {
           t.stopTimes = stopTimes[t.tripId];
+          t.agencyId = routeAgencies[tripRoutes[t.tripId]];
         }
 
         for (const c of Object.values(calendars)) {

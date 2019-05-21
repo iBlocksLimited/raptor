@@ -20,16 +20,16 @@ export class RaptorRangeQuery<T> {
   /**
    * Perform a range query on the given date
    */
-  public plan(origin: Stop, destination: Stop, dateObj: Date): T[] {
+  public plan(origin: Stop, destination: Stop, dateObj: Date, notVias: Stop[] = []): T[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const routeScanner = this.routeScannerFactory.create();
     const times = this.departureTimesAtStop[origin];
-
+    
     return times.reduce((results, time) => {
-      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
-      const journeys = this.resultsFactory.getResults(kConnections, destination);
+      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time, notVias);
+      const journeys = this.resultsFactory.getResults(kConnections, destination, dateObj, time);
 
       return results.concat(journeys);
     }, [] as T[]).reverse();

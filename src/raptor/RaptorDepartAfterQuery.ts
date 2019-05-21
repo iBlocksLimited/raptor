@@ -16,13 +16,25 @@ export class RaptorDepartAfterQuery<T> {
   /**
    * Perform a range query on the given date
    */
-  public plan(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): T[] {
+  public plan(origin: Stop, destination: Stop, dateObj: Date, departureSeconds: Time, notVias: Stop[] = []): T[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
+
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const routeScanner = this.routeScannerFactory.create();
-    const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, departureTime);
 
-    return this.resultsFactory.getResults(kConnections, destination);
+    const kConnections =
+        this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, departureSeconds, notVias);
+
+    return this.resultsFactory.getResults(kConnections, destination, dateObj);
+  }
+
+  public getMidnight(date: Date): Date {
+    let midnight = new Date(date);
+    midnight.setHours(0);
+    midnight.setMinutes(0);
+    midnight.setSeconds(0);
+    midnight.setMilliseconds(0);
+    return midnight;
   }
 }

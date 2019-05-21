@@ -5,7 +5,8 @@ import {RaptorQueryFactory} from "./raptor/RaptorQueryFactory";
 
 const numCPUs = require("os").cpus().length;
 
-async function run(filename: string) {
+export async function run(filename: string) {
+  
   const date = new Date();
   const [trips, transfers, interchange, calendars] = await loadGTFS(filename);
   const {stops} = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
@@ -30,6 +31,7 @@ async function run(filename: string) {
 }
 
 if (process.argv[2]) {
+  console.log("I think this runs?");
   run(process.argv[2]).catch(e => console.error(e));
 }
 else {
