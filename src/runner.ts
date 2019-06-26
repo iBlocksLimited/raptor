@@ -20,6 +20,9 @@ hcApp.get("", (req, res) => res.send("ok"));
 
 
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
+  if (trips.length < 1) {
+      throw new Error("No trips found");
+  }
   const resultsFactory = new IbJourneyFactory();
   const detailedResultsFactory = new JourneyFactory();
   console.log(new Date());

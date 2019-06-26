@@ -46,7 +46,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     const results: IbJourney[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
-      if (parseInt(k, 10) < 5) {
+      if (parseInt(k, 10) <= 5) {
         let foundLegs = this.getJourneyLegs(
           kConnections,
           k,
