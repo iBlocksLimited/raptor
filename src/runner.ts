@@ -1,8 +1,10 @@
 import * as raptor from "./index";
-import * as allRuns from "./transfer-patterns";
-import {JourneyFactory, RaptorQueryFactory, Stop} from "./index";
-import { IbJourneyFactory } from "./results/IbJourneyFactory";
-import { SmJourneyFactory } from "./results/SmJourneyFactory";
+import * as loggerExports from "./logger";
+
+import {RaptorQueryFactory, Stop} from "./index";
+import {IbJourneyFactory} from "./results/IbJourneyFactory";
+import {SmJourneyFactory} from "./results/SmJourneyFactory";
+
 const express = require("express");
 let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 
@@ -11,6 +13,10 @@ let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 // } else {
 //   console.log("Please specify a GTFS file.");
 // }
+
+const logger = loggerExports.logger;
+const logLevels = loggerExports.logLevels;
+
 let app = express();
 
 let hcApp = express();
@@ -21,98 +27,116 @@ app.get("/healthcheck", (req, res) => res.send("ok"));
 hcApp.get("", (req, res) => res.send("ok"));
 
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
-  const resultsFactory = new IbJourneyFactory();
-  const detailedResultsFactory = new SmJourneyFactory();
-  console.log(new Date());
-  const query = RaptorQueryFactory.createTimeRangeQuery(
-    trips,
-    transfers,
-    interchange,
-    calendars,
-    resultsFactory
-  );
+    const resultsFactory = new IbJourneyFactory();
+    const detailedResultsFactory = new SmJourneyFactory();
+    console.log(new Date());
+    const query = RaptorQueryFactory.createTimeRangeQuery(
+        trips,
+        transfers,
+        interchange,
+        calendars,
+        resultsFactory
+    );
 
-  const singleLookup = RaptorQueryFactory.createDepartAfterQuery(
-    trips,
-    transfers,
-    interchange,
-    calendars,
-    detailedResultsFactory
-  );
+    const singleLookup = RaptorQueryFactory.createDepartAfterQuery(
+        trips,
+        transfers,
+        interchange,
+        calendars,
+        detailedResultsFactory
+    );
 
-  const detailedQuery = RaptorQueryFactory.createTimeRangeQuery(
-    trips,
-    transfers,
-    interchange,
-    calendars,
-    detailedResultsFactory
-  );
-  console.log(new Date());
-  app.get("/", (req, res, next) => {
-    console.log(req.query);
-    const orig = req.query.orig;
-    const dest = req.query.dest;
-    
-    const startDate = new Date(req.query.startDate);
-    const endDate = new Date(req.query.endDate);
-    const searchDate = getMidnight(startDate.toISOString());
+    const detailedQuery = RaptorQueryFactory.createTimeRangeQuery(
+        trips,
+        transfers,
+        interchange,
+        calendars,
+        detailedResultsFactory
+    );
+    console.log(new Date());
+    app.get("/", (req, res, next) => {
+        console.log(req.query);
+        const orig = req.query.orig;
+        const dest = req.query.dest;
 
-    const notVias = req.query.notVia ? req.query.notVia : [];
-    if (!validateNotVias(notVias, orig, dest)) {
-        sendInvalidNotViasMessage(res, notVias, orig, dest);
-        return;
-    }
+        const startDate = new Date(req.query.startDate);
+        const endDate = new Date(req.query.endDate);
+        const searchDate = getMidnight(startDate.toISOString());
 
-    console.log(orig, dest, searchDate, startDate, endDate, notVias);
+        const notVias = req.query.notVia ? req.query.notVia : [];
+        if (!validateNotVias(notVias, orig, dest)) {
+            sendInvalidNotViasMessage(res, notVias, orig, dest);
+            return;
+        }
 
-    const journeys = query.plan(orig, dest, searchDate, startDate, endDate, notVias);
-    res.send(journeys);
-  });
-  app.get("/detail", (req, res, next) => {
-    console.log(req.query);
-    const orig = req.query.orig;
-    const dest = req.query.dest;
-    
-    const startDate = new Date(req.query.startDate);
-    const endDate = new Date(req.query.endDate);
-    const searchDate = getMidnight(startDate.toISOString());
+        console.log(orig, dest, searchDate, startDate, endDate, notVias);
 
-    const notVias = req.query.notVia ? req.query.notVia : [];
-    if (!validateNotVias(notVias, orig, dest)) {
-        sendInvalidNotViasMessage(res, notVias, orig, dest);
-        return;
-    }
+        const journeys = query.plan(orig, dest, searchDate, startDate, endDate, notVias);
+        res.send(journeys);
+    });
+    app.get("/detail", (req, res, next) => {
+        console.log(req.query);
+        const orig = req.query.orig;
+        const dest = req.query.dest;
 
-    console.log(orig, dest, searchDate, startDate, endDate, notVias);
+        const startDate = new Date(req.query.startDate);
+        const endDate = new Date(req.query.endDate);
+        const searchDate = getMidnight(startDate.toISOString());
 
-    const journeys = detailedQuery.plan(orig, dest, searchDate, startDate, endDate, notVias);
-    res.send(journeys);
-  });
+        const notVias = req.query.notVia ? req.query.notVia : [];
+        if (!validateNotVias(notVias, orig, dest)) {
+            sendInvalidNotViasMessage(res, notVias, orig, dest);
+            return;
+        }
 
-  app.get("/first-arrival", (req, res, next) => {
-    console.log(req.query);
-    const orig = req.query.orig;
-    const dest = req.query.dest;
+        console.log(orig, dest, searchDate, startDate, endDate, notVias);
 
-    const startDate = new Date(req.query.startDate);
+        const journeys = detailedQuery.plan(orig, dest, searchDate, startDate, endDate, notVias);
+        res.send(journeys);
+    });
 
-    const notVias = req.query.notVia ? req.query.notVia : [];
-    if (!validateNotVias(notVias, orig, dest)) {
-        sendInvalidNotViasMessage(res, notVias, orig, dest);
-        return;
-    }
+    app.get("/first-arrival", (req, res, next) => {
+        console.log(req.query);
+        const orig = req.query.orig;
+        const dest = req.query.dest;
 
-    const searchDate = getMidnight(startDate.toISOString());
-    console.log("Single lookup", orig, dest, searchDate, startDate, notVias);
-    const midnight = getMidnight(startDate.toISOString());
-    const startSeconds = (startDate.valueOf() - midnight.valueOf()) / 1000;
+        const startDate = new Date(req.query.startDate);
 
-    const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds, notVias);
-    res.send(journeys);
-  });
+        const notVias = req.query.notVia ? req.query.notVia : [];
+        if (!validateNotVias(notVias, orig, dest)) {
+            sendInvalidNotViasMessage(res, notVias, orig, dest);
+            return;
+        }
 
-  app.listen(port, () => console.log(`Raptor listening on port ${port}!`));
-  hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
+        const searchDate = getMidnight(startDate.toISOString());
+        console.log("Single lookup", orig, dest, searchDate, startDate, notVias);
+        const midnight = getMidnight(startDate.toISOString());
+        const startSeconds = (startDate.valueOf() - midnight.valueOf()) / 1000;
+
+        const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds, notVias);
+        res.send(journeys);
+    });
+
+    app.get("/get-log-level", (req, res, next) => {
+        res.send(logger.transports[0].level);
+        logger.info("hello");
+    });
+
+    app.get("/set-log-level", (req, res, next) => {
+        const level = req.query.level;
+
+        // incorrect/missing query param
+        if (!!!level || !logLevels.includes(level)) {
+            res.status(500).send("incorrect/missing query param [level], possible values are: [ " + logLevels + " ]");
+        } else {
+            const prevLevel = logger.transports[0].level;
+            logger.transports[0].level = level;
+            res.send("logging was changed from [" + prevLevel + "] to [" + logger.transports[0].level + "]");
+        }
+    });
+
+    app.listen(port, () => console.log(`Raptor listening on port ${port}!`));
+    hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
 });
 
 /**
@@ -147,10 +171,10 @@ class InvalidNotViaError extends Error {
 }
 
 function getMidnight(date: string): Date {
-  let midnight = new Date(date);
-  midnight.setHours(0);
-  midnight.setMinutes(0);
-  midnight.setSeconds(0);
-  midnight.setMilliseconds(0);
-  return midnight;
+    let midnight = new Date(date);
+    midnight.setHours(0);
+    midnight.setMinutes(0);
+    midnight.setSeconds(0);
+    midnight.setMilliseconds(0);
+    return midnight;
 }

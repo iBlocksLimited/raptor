@@ -49,6 +49,7 @@
     "express": "^4.16.4",
     "mysql2": "^1.6.4",
     "progress": "^2.0.3",
-    "ts-array-utils": "^0.5.0"
+    "ts-array-utils": "^0.5.0",
+    "winston": "^3.2.1"
   }
 }
