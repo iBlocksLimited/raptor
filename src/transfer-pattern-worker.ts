@@ -2,12 +2,13 @@ import {loadGTFS} from "./gtfs/GTFSLoader";
 import {TransferPatternGeneratorFactory} from "./transfer-pattern/TransferPatternGenerator";
 import {PatternStringGenerator} from "./transfer-pattern/PatternStringGenerator";
 import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepository";
+import {logger} from "./logger";
 
 /**
  * Worker that finds transfer patterns for a given station
  */
 async function worker(filename: string, date: Date): Promise<void> {
-  console.log(filename, date);
+  logger.debug("Filename: %s, Date: %s", filename, date)
   const [trips, transfers, interchange, calendars] = await loadGTFS(filename);
 
   const raptor = TransferPatternGeneratorFactory.create(
@@ -51,10 +52,10 @@ function getDatabase() {
 
 if (process.argv[2] && process.argv[3]) {
   worker(process.argv[2], new Date(process.argv[3])).catch(err => {
-    console.error(err);
+    logger.error(err);
     process.exit();
   });
 }
 else {
-  console.log("Please specify a date and GTFS file.");
+  logger.info("Please specify a date and GTFS file.");
 }

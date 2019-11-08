@@ -3,6 +3,7 @@ import {ResultsFactory} from "../results/ResultsFactory";
 import {DayOfWeek, Stop, Time} from "../gtfs/GTFS";
 import {keyValue} from "ts-array-utils";
 import {RouteScannerFactory} from "./RouteScanner";
+import {logger} from "../logger";
 
 /**
  * Use the Raptor algorithm to generate a full day of results.
@@ -33,8 +34,7 @@ export class RaptorTimeRangeQuery<T> {
     const midnight = this.getMidnight(startRange);
     const startSeconds = (startRange.valueOf() - midnight.valueOf()) / 1000;
     const endSeconds = (endRange.valueOf() - midnight.valueOf()) / 1000;
-    console.log("Searching from ", startSeconds);
-    console.log("until ", endSeconds);
+    logger.debug("Searching from %o seconds until %o seconds", startSeconds, endSeconds);
     
     const times = preFilteredTimes.filter(s => (s >= startSeconds && s < endSeconds));
     const kArrivals = [

@@ -2,11 +2,12 @@ import * as cp  from "child_process";
 import * as ProgressBar from "progress";
 import {loadGTFS} from "./gtfs/GTFSLoader";
 import {RaptorQueryFactory} from "./raptor/RaptorQueryFactory";
+import {logger} from "./logger";
 
 const numCPUs = require("os").cpus().length;
 
 export async function run(filename: string) {
-  
+
   const date = new Date();
   const [trips, transfers, interchange, calendars] = await loadGTFS(filename);
   const {stops} = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
@@ -31,9 +32,9 @@ export async function run(filename: string) {
 }
 
 if (process.argv[2]) {
-  console.log("I think this runs?");
-  run(process.argv[2]).catch(e => console.error(e));
+  logger.info("I think this runs?");
+  run(process.argv[2]).catch(e => logger.error(e));
 }
 else {
-  console.log("Please specify a GTFS file.");
+  logger.info("Please specify a GTFS file.");
 }

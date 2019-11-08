@@ -3,7 +3,6 @@ const winston = require("winston");
 // list of logging levels in order
 export const logLevels = ["error", "warn", "info", "verbose", "debug", "silly"];
 
-// setup winston logger
 const printOptions = {
     year: "numeric",
     month: "2-digit",
@@ -15,8 +14,9 @@ const printOptions = {
 };
 
 const logFormat = winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(info => `[${new Date(info.timestamp).toLocaleDateString("en-GB", printOptions)}] [${info.level.toUpperCase()}]: ${info.message}`)
+    winston.format.splat(),
+    winston.format.timestamp({format: "YYYY-MM-DD HH:mm:ss"}),
+    winston.format.printf(info => `[${info.timestamp}] [${info.level.toUpperCase()}]: ${info.message}`)
 );
 
 export const logger = winston.createLogger({
@@ -24,12 +24,12 @@ export const logger = winston.createLogger({
     transports: [
         new winston.transports.File({
             level: "info",
-            filename: `${__dirname}/raptor.log`,
+            filename: `/var/log/raptor/raptor.log`,
             handleExceptions: true,
-            json: false,
-            maxsize: 5242880, // 5MB
+            json: true,
+            maxsize: 52428800, // 50MB
             maxFiles: 5,
-            colorize: true,
+            colorize: false,
         })
     ]
 });

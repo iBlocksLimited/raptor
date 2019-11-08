@@ -1,11 +1,12 @@
 import * as raptor from "./index";
-import * as loggerExports from "./logger";
-
 import {RaptorQueryFactory, Stop} from "./index";
+import {logger, logLevels} from "./logger";
 import {IbJourneyFactory} from "./results/IbJourneyFactory";
 import {SmJourneyFactory} from "./results/SmJourneyFactory";
 
 const express = require("express");
+
+logger.info("Initialising Raptor with the following GTFS File: %s", process.argv[2]);
 let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 
 // if (process.argv[2]) {
@@ -14,22 +15,19 @@ let loadingNetwork = raptor.loadGTFS(process.argv[2]);
 //   console.log("Please specify a GTFS file.");
 // }
 
-const logger = loggerExports.logger;
-const logLevels = loggerExports.logLevels;
-
 let app = express();
-
 let hcApp = express();
 
 const port = 3000;
 const hcPort = 3001;
+
 app.get("/healthcheck", (req, res) => res.send("ok"));
 hcApp.get("", (req, res) => res.send("ok"));
 
 loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
     const resultsFactory = new IbJourneyFactory();
     const detailedResultsFactory = new SmJourneyFactory();
-    console.log(new Date());
+    logger.info("GTFS data was successfully loaded & Raptor was started.");
     const query = RaptorQueryFactory.createTimeRangeQuery(
         trips,
         transfers,
@@ -53,12 +51,12 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
         calendars,
         detailedResultsFactory
     );
-    console.log(new Date());
+
     app.get("/", (req, res, next) => {
-        console.log(req.query);
+
+        logger.verbose("Request to '/' with req.query: %s", JSON.stringify(req.query));
         const orig = req.query.orig;
         const dest = req.query.dest;
-
         const startDate = new Date(req.query.startDate);
         const endDate = new Date(req.query.endDate);
         const searchDate = getMidnight(startDate.toISOString());
@@ -69,16 +67,18 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
             return;
         }
 
-        console.log(orig, dest, searchDate, startDate, endDate, notVias);
+        logger.verbose("Origin: %o, Destination: %o, SearchDate: %o, StartDate: %o, EndDate: %o, NotVias: %o",
+            orig, dest, searchDate, startDate, endDate, notVias);
 
         const journeys = query.plan(orig, dest, searchDate, startDate, endDate, notVias);
         res.send(journeys);
     });
+
     app.get("/detail", (req, res, next) => {
-        console.log(req.query);
+
+        logger.verbose("Request to '/detail' with req.query: %s", JSON.stringify(req.query));
         const orig = req.query.orig;
         const dest = req.query.dest;
-
         const startDate = new Date(req.query.startDate);
         const endDate = new Date(req.query.endDate);
         const searchDate = getMidnight(startDate.toISOString());
@@ -89,17 +89,18 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
             return;
         }
 
-        console.log(orig, dest, searchDate, startDate, endDate, notVias);
+        logger.verbose("Origin: %o, Destination: %o, SearchDate: %o, StartDate: %o, EndDate: %o, NotVias: %o",
+            orig, dest, searchDate, startDate, endDate, notVias);
 
         const journeys = detailedQuery.plan(orig, dest, searchDate, startDate, endDate, notVias);
         res.send(journeys);
     });
 
     app.get("/first-arrival", (req, res, next) => {
-        console.log(req.query);
+
+        logger.verbose("Request to '/first-arrival' with req.query: %s", JSON.stringify(req.query));
         const orig = req.query.orig;
         const dest = req.query.dest;
-
         const startDate = new Date(req.query.startDate);
 
         const notVias = req.query.notVia ? req.query.notVia : [];
@@ -107,36 +108,37 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
             sendInvalidNotViasMessage(res, notVias, orig, dest);
             return;
         }
-
         const searchDate = getMidnight(startDate.toISOString());
-        console.log("Single lookup", orig, dest, searchDate, startDate, notVias);
+
+        logger.verbose("Single Lookup / Origin: %o, Destination: %o, SearchDate: %o, StartDate: %o, NotVias: %o",
+            orig, dest, searchDate, startDate, notVias);
+
         const midnight = getMidnight(startDate.toISOString());
         const startSeconds = (startDate.valueOf() - midnight.valueOf()) / 1000;
-
         const journeys = singleLookup.plan(orig, dest, searchDate, startSeconds, notVias);
         res.send(journeys);
     });
 
     app.get("/get-log-level", (req, res, next) => {
+        logger.verbose("Request to '/get-log-level' with req.query: %s", JSON.stringify(req.query));
         res.send(logger.transports[0].level);
-        logger.info("hello");
     });
 
     app.get("/set-log-level", (req, res, next) => {
-        const level = req.query.level;
+        logger.verbose("Request to '/set-log-level' with req.query: %s", JSON.stringify(req.query));
 
-        // incorrect/missing query param
-        if (!!!level || !logLevels.includes(level)) {
+        const level = req.query.level;
+        if (!level || !logLevels.includes(level)) {
             res.status(500).send("incorrect/missing query param [level], possible values are: [ " + logLevels + " ]");
         } else {
             const prevLevel = logger.transports[0].level;
             logger.transports[0].level = level;
-            res.send("logging was changed from [" + prevLevel + "] to [" + logger.transports[0].level + "]");
+            res.send("log level was changed from [" + prevLevel + "] to [" + logger.transports[0].level + "]");
         }
     });
 
-    app.listen(port, () => console.log(`Raptor listening on port ${port}!`));
-    hcApp.listen(hcPort, () => console.log(`Health check is on port ${hcPort}!`));
+    app.listen(port, () => logger.info(`Raptor listening on port ${port}!`));
+    hcApp.listen(hcPort, () => logger.info(`Health check is on port ${hcPort}!`));
 });
 
 /**
@@ -160,7 +162,7 @@ function sendInvalidNotViasMessage(res: any, notVias: Stop[], origin: Stop, dest
 
 function sendBadRequestMessage(message: string, res: any) {
     res.status(400).send(message);
-    console.log(message);
+    logger.verbose(message);
 }
 
 class InvalidNotViaError extends Error {

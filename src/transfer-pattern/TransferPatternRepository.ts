@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {TransferPatternIndex} from "./PatternStringGenerator";
 import {Pool} from "mysql";
 
@@ -6,30 +7,30 @@ import {Pool} from "mysql";
  */
 export class TransferPatternRepository {
 
-  constructor(
-    private readonly db: Pool
-  ) { }
-
-  /**
-   * Store every transfer pattern in the tree
-   */
-  public async storeTransferPatterns(patterns: TransferPatternIndex): Promise<void> {
-    const journeys: object[] = [];
-
-    for (const journey in patterns) {
-      for (const pattern of patterns[journey]) {
-        journeys.push([journey, pattern]);
-      }
+    constructor(
+        private readonly db: Pool
+    ) {
     }
 
-    if (journeys.length > 0) {
-      try {
-        console.log(JSON.stringify(journeys));
-        // await this.db.query("INSERT IGNORE INTO transfer_patterns VALUES ?", [journeys]);
-      }
-      catch (err) {
-        console.error(err);
-      }
+    /**
+     * Store every transfer pattern in the tree
+     */
+    public async storeTransferPatterns(patterns: TransferPatternIndex): Promise<void> {
+        const journeys: object[] = [];
+
+        for (const journey in patterns) {
+            for (const pattern of patterns[journey]) {
+                journeys.push([journey, pattern]);
+            }
+        }
+
+        if (journeys.length > 0) {
+            try {
+                logger.debug("Journeys: %s", JSON.stringify(journeys));
+                // await this.db.query("INSERT IGNORE INTO transfer_patterns VALUES ?", [journeys]);
+            } catch (err) {
+                logger.error(err);
+            }
+        }
     }
-  }
 }
