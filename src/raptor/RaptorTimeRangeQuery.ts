@@ -34,7 +34,7 @@ export class RaptorTimeRangeQuery<T> {
     const midnight = this.getMidnight(startRange);
     const startSeconds = (startRange.valueOf() - midnight.valueOf()) / 1000;
     const endSeconds = (endRange.valueOf() - midnight.valueOf()) / 1000;
-    logger.debug("Searching from %o seconds until %o seconds", startSeconds, endSeconds);
+    logger.debug("Searching from %d seconds until %d seconds", startSeconds, endSeconds);
     
     const times = preFilteredTimes.filter(s => (s >= startSeconds && s < endSeconds));
     const kArrivals = [
