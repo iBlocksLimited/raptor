@@ -4,7 +4,7 @@ const winston = require("winston");
 export const logLevels = ["error", "warn", "info", "verbose", "debug", "silly"];
 
 // read in environment variables
-const logLevel = process.env.RAPTOR_LOG_LEVEL && logLevels.includes(process.env.RAPTOR_LOG_LEVEL) ? process.env.RAPTOR_LOG_LEVEL : "info";
+let logLevel = process.env.RAPTOR_LOG_LEVEL && logLevels.includes(process.env.RAPTOR_LOG_LEVEL) ? process.env.RAPTOR_LOG_LEVEL : "info";
 const logFile = process.env.RAPTOR_LOG_LOCATION || "/var/log/raptor/raptor.log";
 const logToConsole = process.env.RAPTOR_LOG_TO_CONSOLE || false;
 
@@ -44,3 +44,14 @@ export const logger = winston.createLogger({
         })
     ]
 });
+
+export function setLogLevel(lvl: string) {
+    if (lvl && logLevels.includes(lvl)) {
+        logLevel = lvl;
+        logger.transports.forEach(t => t.level = logLevel);
+    }
+}
+
+export function getLogLevel() {
+    return logLevel;
+}

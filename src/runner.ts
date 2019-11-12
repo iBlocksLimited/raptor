@@ -1,6 +1,6 @@
 import * as raptor from "./index";
 import {RaptorQueryFactory, Stop} from "./index";
-import {logger, logLevels} from "./logger";
+import {logger, getLogLevel, setLogLevel} from "./logger";
 import {IbJourneyFactory} from "./results/IbJourneyFactory";
 import {SmJourneyFactory} from "./results/SmJourneyFactory";
 
@@ -121,20 +121,13 @@ loadingNetwork.then(([trips, transfers, interchange, calendars]) => {
 
     app.get("/get-log-level", (req, res, next) => {
         logger.verbose("Request to '/get-log-level' with req.query: %s", JSON.stringify(req.query));
-        res.send(logger.transports[0].level);
+        res.send(getLogLevel());
     });
 
     app.get("/set-log-level", (req, res, next) => {
         logger.verbose("Request to '/set-log-level' with req.query: %s", JSON.stringify(req.query));
-
-        const level = req.query.level;
-        if (!level || !logLevels.includes(level)) {
-            res.status(500).send("incorrect/missing query param [level], possible values are: [ " + logLevels + " ]");
-        } else {
-            const prevLevel = logger.transports[0].level;
-            logger.transports[0].level = level;
-            res.send("log level was changed from [" + prevLevel + "] to [" + logger.transports[0].level + "]");
-        }
+        setLogLevel(req.query.level);
+        res.send(`log level: ${getLogLevel()}`);
     });
 
     app.listen(port, () => logger.info(`Raptor listening on port ${port}!`));
