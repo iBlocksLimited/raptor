@@ -124,17 +124,17 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
     }
 
     let journeyLegs = legs.reverse();
-
+    let journeyResults = [...journeyLegs];
     // If the leg starts with a transfer, set the time to be the search time?
-    if ("duration" in journeyLegs[0]) {
-      let original = journeyLegs[0];
+    if ("duration" in journeyResults[0]) {
+      let original = journeyResults[0];
       let departureTime = new Date(
         startDate.valueOf() + currentTime.valueOf() * 1000
       );
       let arrivalTime = new Date(
         departureTime.valueOf() + (<any>original).duration * 1000
       );
-      journeyLegs[0] = {
+      journeyResults[0] = {
         origin: original.origin,
         destination: original.destination,
         originTrainUid: "",
@@ -146,15 +146,18 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
 
     for (let i = 1; i < journeyLegs.length; i++) {
       if ("duration" in journeyLegs[i]) {
+        if ("duration" in journeyLegs[i - 1]) {
+          return null;
+        }
         let original = journeyLegs[i];
         let departureTime = new Date(
-          (<any>journeyLegs[i - 1]).arrivalTime.valueOf() +
+          (<any>journeyResults[i - 1]).arrivalTime.valueOf() +
             (<any>original).interchange * 1000
         );
         let arrivalTime = new Date(
           departureTime.valueOf() + (<any>original).duration * 1000
         );
-        journeyLegs[i] = {
+        journeyResults[i] = {
           origin: original.origin,
           destination: original.destination,
           originTrainUid: "",
@@ -165,7 +168,7 @@ export class IbJourneyFactory implements ResultsFactory<IbJourney> {
       }
     }
 
-    return journeyLegs;
+    return journeyResults;
   }
 
   formatTrainUid(trainUid) {
